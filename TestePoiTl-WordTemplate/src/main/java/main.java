@@ -14,6 +14,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.apache.xmlbeans.XmlException;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 
 public class main {
     private static final String TEMPLATE = "template.docx";
@@ -113,6 +118,37 @@ public class main {
         }
         tbl.setMergeRule(rule.build());
         
+        String dadosTeste[][] = {
+            new String[]{"Harllem", "23", "Masculino"},
+            new String[]{"Jullyana", "12", "Feminino"},
+            new String[]{"José Carlos", "50", "Masculino"}
+        };
+        
+        //Adicionar valores a uma tabela ja existente
+        XWPFTable tblInDoc = docFile.getXWPFDocument().getAllTables().get(0);
+        int modelRow = 1;
+        
+        if(modelRow <= tblInDoc.getRows().size()){
+            try {
+                for (String[] dadosTeste1 : dadosTeste) {
+                    XWPFTableRow newRow = new XWPFTableRow(
+                        CTRow.Factory.parse(tblInDoc.getRow(modelRow).getCtRow().newInputStream()), 
+                        tblInDoc);
+
+                    for (int j = 0; j < newRow.getTableCells().size(); j++) {
+                        XWPFTableCell cell = newRow.getTableCells().get(j);
+                        cell.setText(dadosTeste1[j]);
+                    }
+                    tblInDoc.addRow(newRow);
+                }
+                tblInDoc.removeRow(modelRow);
+            } catch (XmlException ex) {
+                System.out.println(ex.getError());
+            } catch (IOException ex) {
+                System.out.println(ex.getCause());
+            }
+        }
+
         //Adiciona a alteração ao modelo do arquivo (HashMap)
         dataModel.put("tabela", tbl);
         
